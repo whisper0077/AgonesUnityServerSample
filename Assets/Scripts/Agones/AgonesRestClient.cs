@@ -42,7 +42,7 @@ namespace Agones
             CurrentHealthTime += Time.unscaledDeltaTime;
             if (CurrentHealthTime >= HealthIntervalSecond)
             {
-                HealthAsync();
+                Health();
                 CurrentHealthTime = 0;
             }
         }
@@ -53,7 +53,7 @@ namespace Agones
         /// Marks this Game Server as ready to receive connections
         /// </summary>
         /// <param name="onCompleted">An Action that is invoked with when this operation completed</param>
-        public void ReadyAsync(Action<bool> onCompleted = null)
+        public void Ready(Action<bool> onCompleted = null)
         {
             StartCoroutine(SendPost("/ready", onCompleted));
         }
@@ -62,7 +62,7 @@ namespace Agones
         /// Marks this Game Server as ready to shutdown
         /// </summary>
         /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void ShutdownAsync(Action<bool> onCompleted = null)
+        public void Shutdown(Action<bool> onCompleted = null)
         {
             StartCoroutine(SendPost("/shutdown", onCompleted));
         }
@@ -71,7 +71,7 @@ namespace Agones
         /// Marks this Game Server as Allocated
         /// </summary>
         /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void AllocateAsync(Action<bool> onCompleted = null)
+        public void Allocate(Action<bool> onCompleted = null)
         {
             StartCoroutine(SendPost("/allocate", onCompleted));
         }
@@ -82,7 +82,7 @@ namespace Agones
         /// <param name="key">label key</param>
         /// <param name="value">label value</param>
         /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void SetLabelAsync(string key, string value, Action<bool> onCompleted = null)
+        public void SetLabel(string key, string value, Action<bool> onCompleted = null)
         {
             string json = JsonUtility.ToJson(new KeyValueMessage(key, value));
             StartCoroutine(SendPut("/metadata/label", json, onCompleted));
@@ -94,7 +94,7 @@ namespace Agones
         /// <param name="key">annotation key</param>
         /// <param name="value">annotation value</param>
         /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void SetAnnotationAsync(string key, string value, Action<bool> onCompleted = null)
+        public void SetAnnotation(string key, string value, Action<bool> onCompleted = null)
         {
             string json = JsonUtility.ToJson(new KeyValueMessage(key, value));
             StartCoroutine(SendPut("/metadata/annotation", json, onCompleted));
@@ -102,7 +102,7 @@ namespace Agones
         #endregion
 
         #region AgonesRestClient Private Methods
-        void HealthAsync()
+        void Health()
         {
             StartCoroutine(SendPost("/health"));
         }

@@ -16,7 +16,7 @@ public class UdpEchoServer : MonoBehaviour
         client = new UdpClient(Port);
 
         agones = GetComponent<AgonesRestClient>();
-        agones.ReadyAsync(ok =>
+        agones.Ready(ok =>
         {
             if (ok)
             {
@@ -42,7 +42,7 @@ public class UdpEchoServer : MonoBehaviour
             switch (recvTexts[0])
             {
                 case "Shutdown":
-                    agones.ShutdownAsync(ok =>
+                    agones.Shutdown(ok =>
                     {
                         Log($"Server - Shutdown {ok}");
                         Application.Quit();
@@ -50,14 +50,14 @@ public class UdpEchoServer : MonoBehaviour
                     break;
 
                 case "Allocate":
-                    agones.AllocateAsync(ok => Log($"Server - Allocate {ok}"));
+                    agones.Allocate(ok => Log($"Server - Allocate {ok}"));
                     break;
 
                 case "Label":
                     if (recvTexts.Length == 3)
                     {
                         (string key, string value) = (recvTexts[1], recvTexts[2]);
-                        agones.SetLabelAsync(key, value, ok => Log($"Server - SetLabel {ok}"));
+                        agones.SetLabel(key, value, ok => Log($"Server - SetLabel {ok}"));
                     }
                     break;
 
@@ -65,7 +65,7 @@ public class UdpEchoServer : MonoBehaviour
                     if (recvTexts.Length == 3)
                     {
                         (string key, string value) = (recvTexts[1], recvTexts[2]);
-                        agones.SetAnnotationAsync(key, value, ok => Log($"Server - SetAnnotation {ok}"));
+                        agones.SetAnnotation(key, value, ok => Log($"Server - SetAnnotation {ok}"));
                     }
                     break;
             }
