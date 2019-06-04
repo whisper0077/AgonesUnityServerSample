@@ -1,0 +1,7 @@
+version: '3.7'
+services:
+  unity-server:
+    build: .
+    image: agones-unity-server-sample:latest
+    ports:
+      - "7777:7777/udp"

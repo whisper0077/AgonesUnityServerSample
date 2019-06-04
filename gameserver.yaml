@@ -1,0 +1,22 @@
+apiVersion: "stable.agones.dev/v1alpha1"
+kind: GameServer
+metadata:
+  generateName: "agones-unity-server-sample-"
+spec:
+  ports:
+  - name: default
+    portPolicy: Dynamic
+    containerPort: 7777
+  template:
+    spec:
+      containers:
+      - name: agones-unity-server-sample
+        image: agones-unity-server-sample:1.0
+        imagePullPolicy: Never
+      resources:
+        requests:
+          memory: "512Mi"
+          cpu: "500m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
