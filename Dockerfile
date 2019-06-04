@@ -5,5 +5,5 @@ WORKDIR /unity
 COPY Builds/Server/ ./
 
 # workaround
-# waiting for sidecar is ready
+# wait until the sidecar is ready
 CMD sleep 1 && ./AgonesEchoSampleServer.x86_64

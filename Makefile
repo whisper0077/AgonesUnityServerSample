@@ -9,4 +9,3 @@ install-agones:
 
 build-image:
 	docker build -t agones-unity-server-sample:1.0 .
-
