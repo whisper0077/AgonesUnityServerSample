@@ -38,7 +38,7 @@ There is a few steps.
     ```
 
 ### Building a Server
-* Hit a `Build Server` menu item in the menu bar.
+* Hit a `Build Tool/Build Server` menu item in the menu bar.
   * The Builds are created in a `Builds/Server` Folder.
 
 ### Building a Docker Container Image
