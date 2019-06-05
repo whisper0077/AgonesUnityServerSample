@@ -135,7 +135,7 @@ namespace Agones
 
         async Task<bool> SendRequestAsync(string api, string json, string method = UnityWebRequest.kHttpVerbPOST)
         {
-            // To prevent Health () that throws an exception
+            // To prevent that Health() method throws an exception
             // and async leak after destroying this gameObject
             cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
