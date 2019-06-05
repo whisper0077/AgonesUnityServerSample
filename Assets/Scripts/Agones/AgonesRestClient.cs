@@ -1,13 +1,18 @@
 ﻿using System;
-using System.Collections;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
 
 namespace Agones
 {
     /// <summary>
-    /// Agones Rest Client for Unity
+    /// Agones Rest Client for Unity.
+    ///  
+    /// All api are awaitable.
+    /// But do not call .Wait() method because that method cause deadlock.
     /// </summary>
     public class AgonesRestClient : MonoBehaviour
     {
@@ -18,6 +23,7 @@ namespace Agones
 
         private float CurrentHealthTime { get; set; } = 0;
         private const string SidecarAddress = "http://localhost:59358";
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         private struct KeyValueMessage
         {
@@ -46,34 +52,48 @@ namespace Agones
                 CurrentHealthTime = 0;
             }
         }
+
+        void OnApplicationQuit()
+        {
+            cancellationTokenSource.Dispose();
+        }
         #endregion
 
         #region AgonesRestClient Public Methods
         /// <summary>
         /// Marks this Game Server as ready to receive connections
         /// </summary>
-        /// <param name="onCompleted">An Action that is invoked with when this operation completed</param>
-        public void Ready(Action<bool> onCompleted = null)
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// The task result contains that the request is success or failure.
+        /// </returns>
+        public async Task<bool> Ready()
         {
-            StartCoroutine(SendPost("/ready", onCompleted));
+            return await SendRequestAsync("/ready", "{}");
         }
 
         /// <summary>
         /// Marks this Game Server as ready to shutdown
         /// </summary>
-        /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void Shutdown(Action<bool> onCompleted = null)
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// The task result contains that the request is success or failure.
+        /// </returns>
+        public async Task<bool> Shutdown()
         {
-            StartCoroutine(SendPost("/shutdown", onCompleted));
+            return await SendRequestAsync("/shutdown", "{}");
         }
 
         /// <summary>
         /// Marks this Game Server as Allocated
         /// </summary>
-        /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void Allocate(Action<bool> onCompleted = null)
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// The task result contains that the request is success or failure.
+        /// </returns>
+        public async Task<bool> Allocate()
         {
-            StartCoroutine(SendPost("/allocate", onCompleted));
+            return await SendRequestAsync("/allocate", "{}");
         }
 
         /// <summary>
@@ -81,11 +101,14 @@ namespace Agones
         /// </summary>
         /// <param name="key">label key</param>
         /// <param name="value">label value</param>
-        /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void SetLabel(string key, string value, Action<bool> onCompleted = null)
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// The task result contains that the request is success or failure.
+        /// </returns>
+        public async Task<bool> SetLabel(string key, string value)
         {
             string json = JsonUtility.ToJson(new KeyValueMessage(key, value));
-            StartCoroutine(SendPut("/metadata/label", json, onCompleted));
+            return await SendRequestAsync("/metadata/label", json, UnityWebRequest.kHttpVerbPUT);
         }
 
         /// <summary>
@@ -93,32 +116,29 @@ namespace Agones
         /// </summary>
         /// <param name="key">annotation key</param>
         /// <param name="value">annotation value</param>
-        /// <param name="onCompleted">An Action that is invoked when this operation completed</param>
-        public void SetAnnotation(string key, string value, Action<bool> onCompleted = null)
+        /// <returns>
+        /// A task that represents the asynchronous operation.
+        /// The task result contains that the request is success or failure.
+        /// </returns>
+        public async Task<bool> SetAnnotation(string key, string value)
         {
             string json = JsonUtility.ToJson(new KeyValueMessage(key, value));
-            StartCoroutine(SendPut("/metadata/annotation", json, onCompleted));
+            return await SendRequestAsync("/metadata/annotation", json, UnityWebRequest.kHttpVerbPUT);
         }
         #endregion
 
         #region AgonesRestClient Private Methods
         void Health()
         {
-            StartCoroutine(SendPost("/health"));
+            _ = SendRequestAsync("/health", "{}");
         }
 
-        IEnumerator SendPost(string api, Action<bool> onCompleted = null)
+        async Task<bool> SendRequestAsync(string api, string json, string method = UnityWebRequest.kHttpVerbPOST)
         {
-            return SendRequest(api, "{}", UnityWebRequest.kHttpVerbPOST, onCompleted);
-        }
+            // To prevent Health () that throws an exception
+            // and async leak after destroying this gameObject
+            cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-        IEnumerator SendPut(string api, string json, Action<bool> onCompleted = null)
-        {
-            return SendRequest(api, json, UnityWebRequest.kHttpVerbPUT, onCompleted);
-        }
-
-        IEnumerator SendRequest(string api, string json, string method, Action<bool> onCompleted = null)
-        {
             var req = new UnityWebRequest(SidecarAddress + api, method)
             {
                 uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json)),
@@ -126,16 +146,16 @@ namespace Agones
             };
             req.SetRequestHeader("Content-Type", "application/json");
 
-            yield return req.SendWebRequest();
+            await new AgonesAsyncOperationWrapper(req.SendWebRequest());
 
             bool ok = req.responseCode == 200;
 
             if (ok)
-                Log($"Agones SendRequest ok: {api}");
+                Log($"Agones SendRequest ok: {api} {req.downloadHandler.text}");
             else
                 Log($"Agones SendRequest failed: {api} {req.error}");
 
-            onCompleted?.Invoke(ok);
+            return ok;
         }
 
         void Log(object message)
@@ -148,5 +168,57 @@ namespace Agones
 #endif
         }
         #endregion
+
+        #region AgonesRestClient Nested Classes
+        class AgonesAsyncOperationWrapper
+        {
+            public UnityWebRequestAsyncOperation AsyncOp { get; }
+            public AgonesAsyncOperationWrapper(UnityWebRequestAsyncOperation unityOp)
+            {
+                AsyncOp = unityOp;
+            }
+
+            public AgonesAsyncOperationAwaiter GetAwaiter()
+            {
+                return new AgonesAsyncOperationAwaiter(this);
+            }
+        }
+
+        class AgonesAsyncOperationAwaiter : INotifyCompletion
+        {
+            private UnityWebRequestAsyncOperation asyncOp;
+            private Action continuation;
+
+            public AgonesAsyncOperationAwaiter(AgonesAsyncOperationWrapper wrapper)
+            {
+                asyncOp = wrapper.AsyncOp;
+                asyncOp.completed += OnRequestCompleted;
+            }
+
+            public bool IsCompleted => asyncOp.isDone;
+
+            public void GetResult()
+            {
+                asyncOp.completed -= OnRequestCompleted;
+
+                // remove references
+                asyncOp = null;
+                continuation = null;
+            }
+
+            public void OnCompleted(Action continuation)
+            {
+                this.continuation = continuation;
+            }
+
+            private void OnRequestCompleted(AsyncOperation _)
+            {
+                if (continuation != null)
+                    continuation();
+            }
+        }
+        #endregion
     }
+
+
 }

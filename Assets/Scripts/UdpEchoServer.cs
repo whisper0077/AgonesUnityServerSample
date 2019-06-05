@@ -11,26 +11,24 @@ public class UdpEchoServer : MonoBehaviour
     private UdpClient client = null;
     private AgonesRestClient agones = null;
 
-    void Start()
+    async void Start()
     {
         client = new UdpClient(Port);
 
         agones = GetComponent<AgonesRestClient>();
-        agones.Ready(ok =>
+        bool ok = await agones.Ready();
+        if (ok)
         {
-            if (ok)
-            {
-                Log($"Server - Ready");
-            }
-            else
-            {
-                Log($"Server - Cound not ready");
-                Application.Quit();
-            }
-        });
+            Log($"Server - Ready");
+        }
+        else
+        {
+            Log($"Server - Cound not ready");
+            Application.Quit();
+        }
     }
 
-    void Update()
+    async void Update()
     {
         while (client.Available > 0)
         {
@@ -39,25 +37,26 @@ public class UdpEchoServer : MonoBehaviour
             string recvText = Encoding.UTF8.GetString(recvBytes);
 
             string[] recvTexts = recvText.Split(' ');
+            bool ok = false;
             switch (recvTexts[0])
             {
                 case "Shutdown":
-                    agones.Shutdown(ok =>
-                    {
-                        Log($"Server - Shutdown {ok}");
-                        Application.Quit();
-                    });
+                    ok = await agones.Shutdown();
+                    Log($"Server - Shutdown {ok}");
+                    Application.Quit();
                     break;
 
                 case "Allocate":
-                    agones.Allocate(ok => Log($"Server - Allocate {ok}"));
+                    ok = await agones.Allocate();
+                    Log($"Server - Allocate {ok}");
                     break;
 
                 case "Label":
                     if (recvTexts.Length == 3)
                     {
                         (string key, string value) = (recvTexts[1], recvTexts[2]);
-                        agones.SetLabel(key, value, ok => Log($"Server - SetLabel {ok}"));
+                        ok = await agones.SetLabel(key, value);
+                        Log($"Server - SetLabel {ok}");
                     }
                     break;
 
@@ -65,7 +64,8 @@ public class UdpEchoServer : MonoBehaviour
                     if (recvTexts.Length == 3)
                     {
                         (string key, string value) = (recvTexts[1], recvTexts[2]);
-                        agones.SetAnnotation(key, value, ok => Log($"Server - SetAnnotation {ok}"));
+                        ok = await agones.SetAnnotation(key, value);
+                        Log($"Server - SetAnnotation {ok}");
                     }
                     break;
             }
