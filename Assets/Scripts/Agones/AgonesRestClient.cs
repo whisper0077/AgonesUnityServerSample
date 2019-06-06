@@ -17,7 +17,7 @@ namespace Agones
     public class AgonesRestClient : MonoBehaviour
     {
         [Range(1, 5)]
-        public float HealthIntervalSecond = 2.0f;
+        public float HealthIntervalSecond = 5.0f;
         public bool HealthEnabled = true;
         public bool LogEnabled = true;
 
