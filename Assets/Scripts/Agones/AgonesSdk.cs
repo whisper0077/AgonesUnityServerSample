@@ -17,13 +17,14 @@ namespace Agones
     public class AgonesSdk : MonoBehaviour
     {
         [Range(1, 5)]
-        public float HealthIntervalSecond = 5.0f;
-        public bool HealthEnabled = true;
-        public bool LogEnabled = true;
+        public float healthIntervalSecond = 5.0f;
+        public bool healthEnabled = true;
+        public bool logEnabled = true;
+
+        private const string sidecarAddress = "http://localhost:59358";
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         private float CurrentHealthTime { get; set; } = 0;
-        private const string SidecarAddress = "http://localhost:59358";
-        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         private struct KeyValueMessage
         {
@@ -42,11 +43,10 @@ namespace Agones
         // Update is called once per frame
         void Update()
         {
-            if (!HealthEnabled)
-                return;
+            if (!healthEnabled) { return; }
 
             CurrentHealthTime += Time.unscaledDeltaTime;
-            if (CurrentHealthTime >= HealthIntervalSecond)
+            if (CurrentHealthTime >= healthIntervalSecond)
             {
                 Health();
                 CurrentHealthTime = 0;
@@ -139,7 +139,7 @@ namespace Agones
             // and async leak after destroying this gameObject
             cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
-            var req = new UnityWebRequest(SidecarAddress + api, method)
+            var req = new UnityWebRequest(sidecarAddress + api, method)
             {
                 uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json)),
                 downloadHandler = new DownloadHandlerBuffer()
@@ -151,16 +151,21 @@ namespace Agones
             bool ok = req.responseCode == 200;
 
             if (ok)
+            {
                 Log($"Agones SendRequest ok: {api} {req.downloadHandler.text}");
+            }
             else
+            {
                 Log($"Agones SendRequest failed: {api} {req.error}");
+            }
 
             return ok;
         }
 
         void Log(object message)
         {
-            if (!LogEnabled) return;
+            if (!logEnabled) { return; }
+
 #if UNITY_EDITOR
             Debug.Log(message);
 #else
@@ -214,7 +219,9 @@ namespace Agones
             private void OnRequestCompleted(AsyncOperation _)
             {
                 if (continuation != null)
+                {
                     continuation();
+                }
             }
         }
         #endregion
