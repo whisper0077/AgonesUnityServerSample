@@ -9,12 +9,12 @@ using UnityEngine.Networking;
 namespace Agones
 {
     /// <summary>
-    /// Agones Rest Client for Unity.
+    /// Agones SDK for Unity.
     ///  
     /// All api are awaitable.
     /// But do not call .Wait() method because that method cause deadlock.
     /// </summary>
-    public class AgonesRestClient : MonoBehaviour
+    public class AgonesSdk : MonoBehaviour
     {
         [Range(1, 5)]
         public float HealthIntervalSecond = 5.0f;

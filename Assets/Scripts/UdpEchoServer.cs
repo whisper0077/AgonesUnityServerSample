@@ -9,13 +9,13 @@ public class UdpEchoServer : MonoBehaviour
 {
     private int Port { get; set; } = 7777;
     private UdpClient client = null;
-    private AgonesRestClient agones = null;
+    private AgonesSdk agones = null;
 
     async void Start()
     {
         client = new UdpClient(Port);
 
-        agones = GetComponent<AgonesRestClient>();
+        agones = GetComponent<AgonesSdk>();
         bool ok = await agones.Ready();
         if (ok)
         {
