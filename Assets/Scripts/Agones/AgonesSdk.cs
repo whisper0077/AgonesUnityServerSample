@@ -10,9 +10,6 @@ namespace Agones
 {
     /// <summary>
     /// Agones SDK for Unity.
-    ///  
-    /// All api are awaitable.
-    /// But do not call .Wait() method because that method cause deadlock.
     /// </summary>
     public class AgonesSdk : MonoBehaviour
     {
