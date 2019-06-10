@@ -1,12 +1,12 @@
 # AgonesUnityServerSample
-Unity Server Sample for [Agones](https://github.com/GoogleCloudPlatform/agones)
+A Dedicated Server Sample built in Unity, It uses [Agones](https://github.com/GoogleCloudPlatform/agones) Rest SDK.
 
 ## Install and Prerequisites
-This sample is tested on
+This sample is working on
 ```
-Unity : Unity 2018.4.1f1
-Platform : Windows 10 Pro
-Docker : Version 2.0.0.3 (31259)
+Unity Editor: Unity 2018.4.1f1
+OS: Windows 10 Pro
+Docker: Version 2.0.0.3 (31259)
 Minikube: v1.1.0
 ```
 and Using Powershell
@@ -20,10 +20,10 @@ and Using Powershell
 * Open `AgonesUnityServerSample` with UnityEditor.
 * Select `AgonesEchoSample` scene.
 * Play!
-  * A Echo Client and a Local Echo Server will run.
+  * An Echo Client and a Local Echo Server will run.
 
-## Running a Server on Agones
-There is a few steps.
+## Running a Dedicated Server on Agones
+There are a few steps.
 
 ### Setting a Minikube Cluster and Install Agones
 * Please see [Agones Document](https://agones.dev/site/docs/installation/)
@@ -37,16 +37,17 @@ There is a few steps.
     make install-agones
     ```
 
-### Building a Server
+### Building a Dedicated Server
+* Open `AgonesUnityServerSample` with UnityEditor.
 * Hit a `Build Tool/Build Server` menu item in the menu bar.
   * The Builds are created in a `Builds/Server` Folder.
 
-### Building a Docker Container Image
+### Building a Docker Container Image for Agones
   ```
   docker build -t agones-unity-server-sample:1.0 .
   ```
 
-### Running a Unity Server Container on Agones
+### Running a Dedicated Server Container on Agones
 * Use local docker images on Minikube
   ```
    & minikube docker-env | Invoke-Expression
