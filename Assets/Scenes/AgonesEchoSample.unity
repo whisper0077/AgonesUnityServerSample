@@ -2080,9 +2080,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 879d77e4a6901824d96af90b238fae9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HealthIntervalSecond: 3
-  HealthEnabled: 1
-  LogEnabled: 1
+  healthIntervalSecond: 5
+  healthEnabled: 1
+  logEnabled: 1
 --- !u!1 &2074610802
 GameObject:
   m_ObjectHideFlags: 0
