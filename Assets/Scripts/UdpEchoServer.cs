@@ -19,11 +19,11 @@ public class UdpEchoServer : MonoBehaviour
         bool ok = await agones.Ready();
         if (ok)
         {
-            Log($"Server - Ready");
+            Debug.Log($"Server - Ready");
         }
         else
         {
-            Log($"Server - Cound not ready");
+            Debug.Log($"Server - Ready failed");
             Application.Quit();
         }
     }
@@ -42,13 +42,13 @@ public class UdpEchoServer : MonoBehaviour
             {
                 case "Shutdown":
                     ok = await agones.Shutdown();
-                    Log($"Server - Shutdown {ok}");
+                    Debug.Log($"Server - Shutdown {ok}");
                     Application.Quit();
                     break;
 
                 case "Allocate":
                     ok = await agones.Allocate();
-                    Log($"Server - Allocate {ok}");
+                    Debug.Log($"Server - Allocate {ok}");
                     break;
 
                 case "Label":
@@ -56,7 +56,7 @@ public class UdpEchoServer : MonoBehaviour
                     {
                         (string key, string value) = (recvTexts[1], recvTexts[2]);
                         ok = await agones.SetLabel(key, value);
-                        Log($"Server - SetLabel {ok}");
+                        Debug.Log($"Server - SetLabel {ok}");
                     }
                     break;
 
@@ -65,7 +65,7 @@ public class UdpEchoServer : MonoBehaviour
                     {
                         (string key, string value) = (recvTexts[1], recvTexts[2]);
                         ok = await agones.SetAnnotation(key, value);
-                        Log($"Server - SetAnnotation {ok}");
+                        Debug.Log($"Server - SetAnnotation {ok}");
                     }
                     break;
             }
@@ -73,22 +73,13 @@ public class UdpEchoServer : MonoBehaviour
             byte[] echo = Encoding.UTF8.GetBytes($"Echo : {recvText}");
             client.Send(echo, echo.Length, remote);
 
-            Log($"Server - Receive[{remote.ToString()}] : {recvText}");
+            Debug.Log($"Server - Receive[{remote.ToString()}] : {recvText}");
         }
     }
 
     void OnDestroy()
     {
         client.Close();
-        Log("Server - Close");
-    }
-
-    void Log(object message)
-    {
-#if UNITY_EDITOR
-        Debug.Log(message);
-#else
-        Console.WriteLine(message);
-#endif
+        Debug.Log("Server - Close");
     }
 }
